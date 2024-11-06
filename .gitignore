@@ -1,0 +1,12 @@
+# Ignore VS Code project files
+.vscode/
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+*.swp
+
+# Ignore Kafka logs
+logs/
