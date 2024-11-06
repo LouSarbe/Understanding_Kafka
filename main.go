@@ -42,26 +42,38 @@ func main() {
 	// Define the topic name
 	topic := "Cloud_Data_Structure-Topic"
 
-	// Create the topic (if it doesn't exist)
-	results, err := adminClient.CreateTopics(
-		context.Background(),
-		[]kafka.TopicSpecification{{ // Define a single topic specification
-			Topic:             topic,
-			NumPartitions:     1, // One partition for the topic
-			ReplicationFactor: 1, // Replicate data to one broker (for simplicity)
-		}},
-		nil, // No additional options
-	)
+	topics, err := adminClient.GetMetadata(&topic, true, 5000)
 	if err != nil {
-		fmt.Printf("Failed to create topic: %s\n", err)
+		fmt.Printf("Failed to get metadata: %s\n", err)
 		os.Exit(1)
 	}
 
-	// Check for errors during topic creation
-	for _, result := range results {
-		if result.Error.Code() != kafka.ErrNoError {
-			fmt.Printf("Failed to create topic %s: %s\n", result.Topic, result.Error.String())
+	// Check if the topic already exists
+	if _, ok := topics.Topics[topic]; ok {
+		fmt.Printf("Topic %s already exists\n", topic)
+	} else {
+		fmt.Printf("Topic %s does not exist, creating it...\n", topic)
+		// Create the topic (if it doesn't exist)
+		results, err := adminClient.CreateTopics(
+			context.Background(),
+			[]kafka.TopicSpecification{{ // Define a single topic specification
+				Topic:             topic,
+				NumPartitions:     1, // One partition for the topic
+				ReplicationFactor: 1, // Replicate data to one broker (for simplicity)
+			}},
+			nil, // No additional options
+		)
+		if err != nil {
+			fmt.Printf("Failed to create topic: %s\n", err)
 			os.Exit(1)
+		}
+
+		// Check for errors during topic creation
+		for _, result := range results {
+			if result.Error.Code() != kafka.ErrNoError {
+				fmt.Printf("Failed to create topic %s: %s\n", result.Topic, result.Error.String())
+				os.Exit(1)
+			}
 		}
 	}
 
